@@ -1,0 +1,39 @@
+- name: Configuration of Apache Web-Server in Docker Container using Ansible
+  hosts: 192.168.43.157
+  tasks:
+          - name: Setting Docker Repo in Manage Node
+            yum_repository:
+                    name: docker
+                    baseurl: https://download.docker.com/linux/centos/7/x86_64/stable
+                    description: This is Docker Repo
+                    gpgcheck: no
+
+          - name: Installing Docker in Managed Node
+            command:
+                    cmd: "yum install docker-ce --nobest -y"
+
+          - file:
+                     path: "/ws1"
+                     state: directory
+          - copy:
+                   src: "docker.html"
+                   dest: "/ws1"
+
+          - name: Start Docker Service in Managed Node
+            service:
+                    name: docker
+                    state: started
+                    enabled: yes
+
+          - name: Setup Python SDK for Docker
+            command: pip3 install docker
+
+          - name: Pulling httpd image from DockerHub
+            docker_image: 
+                    name: httpd
+                    source: pull
+                    tag: latest
+          - command: docker run -d -p 8045:80 --name taskten httpd:latest
+
+          - command: docker cp /ws1/docker.html  taskten:/usr/local/apache2/htdocs/docker.html
+         
